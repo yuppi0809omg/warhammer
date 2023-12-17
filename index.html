@@ -29,7 +29,7 @@
         <div class="card" >
           <p class="card-header bg-dark text-white fs-3" >
             HIT
-            <span class="icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="20 rolls; Hit once on 3, 4, 5 and 3x for 6">
+            <span class="icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-title="Number Of Rolls: 20<br>Hit On And Above: 3<br>Extra Hits For 6: +3">
               <i class="bi bi-info-circle"></i>
             </span>
           </p>
@@ -42,7 +42,7 @@
         <div class="card" >
           <p class="card-header bg-dark text-white fs-3">
             WOUND
-            <span class="icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Wound on 3, 4, 5, 6">
+            <span class="icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-title="Wound On And Above: 3">
               <i class="bi bi-info-circle"></i>
             </span>
           </p>
@@ -56,7 +56,7 @@
         <div class="card" >
           <p class="card-header bg-dark text-white fs-3">
             DAMAGE
-            <span class="icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Damage on 1, 2">
+            <span class="icon" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-html="true" data-bs-title="Save On And Above: 3">
               <i class="bi bi-info-circle"></i>
             </span>
           </p>
@@ -68,15 +68,6 @@
       </div>
       <div class="d-grid gap-2 mx-auto">
         <button type="button" id="btn" class="btn btn-warning btn-lg fs-3">Play</button>
-      </div>
-    </div>
-    <!-- Toast -->
-    <div class="toast align-items-center" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="d-flex">
-        <div class="toast-body">
-          Variables Set!
-        </div>
-        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
     </div>
     <!-- Modal -->
@@ -95,6 +86,7 @@
               max="100"
               min="1"
               step="1"
+              value="20"
               placeholder="1 to 100"
               inputmode="numeric"
               >
@@ -106,24 +98,27 @@
               max="6"
               min="1"
               step="1"
+              value="3"
               placeholder="1 to 6"
               inputmode="numeric"
               >
             </div>
             <div class="mb-3 d-flex">
-              <input name="explosiveOn6" class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-              <label class="form-check-label" for="flexCheckDefault">
+              <input name="explosiveOn6" class="form-check-input" type="checkbox" value="" id="explosiveOn6">
+              <label class="form-check-label" for="explosiveOn6">
                 Explosive on 6
               </label>
             </div>
-            <div style="display:none;" id="explosiveHits">
+            <div style="display:none;" id="extraHitsContainer">
               <div class="mb-3 d-flex flex-column">
                 <label class="form-label">Extra Hits</label>
                 <input name="extraHits"class="form-control"
                 type="number"
+                id="extraHits"
                 max="10"
                 min="1"
                 step="1"
+                value=""
                 placeholder="1 to 10"
                 inputmode="numeric"
                 >
@@ -137,18 +132,20 @@
               max="6"
               min="1"
               step="1"
+              value="4"
               placeholder="1 to 6"
               inputmode="numeric"
               >
             </div>
             <div class="mb-3 d-flex flex-column">
-              <label class="form-label">Damage on and above</label>
+              <label class="form-label">Save on and above</label>
               <input required class="form-control"
               type="number"
               name="damageOnAndAbove"
               max="6"
               min="1"
               step="1"
+              value="3"
               placeholder="1 to 6"
               inputmode="numeric"
               >
@@ -162,6 +159,8 @@
     </div>
     <script>
       // ToolTip
+      let params = [];
+      const tooltipMessages = ["Number Of Rolls: [INSERT]<br>Hit On And Above: [INSERT]<br>Extra Hits For 6: +[INSERT]", "Wound On And Above: [INSERT]","Save On And Above: [INSERT]"]
       document.addEventListener('DOMContentLoaded', function () {
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
@@ -177,53 +176,83 @@
 
       }
       const handleButtonClick=()=> {
-        const results = play();
+       const results = play(params);
         // innerHTMLでcard-title 2つ追加
-        Array.from(document.getElementsByClassName("card-body")).forEach((ele, index)=>{
-          ele.innerHTML = `<p class="card-title fs-3" style="display: block;">${results.sum[index]}</p><p class="card-title fs-3" style="display: none;">${convertIntoDiceIcon(results, index)}</p>`
-        })
-      }
-
-      const handleCardClick=(event, index)=> {
-        Array.from(event.currentTarget.children).forEach((ele)=>{
-          // switch dislay
-          if(ele.style.display ==="none"){
-            ele.style.display = "block";
-          }else if(ele.style.display === "block"){
-            ele.style.display = "none"
-          }
-        })
-      }
-
-      document.getElementById('btn').addEventListener('click', handleButtonClick);
-      // HTML CollectionはArrayではないのでArrayに変換
-      Array.from(document.getElementsByClassName('card-body')).forEach((ele, index)=>{
-        ele.addEventListener('click', (event)=>{
-          handleCardClick(event,index);
-        })
+       Array.from(document.getElementsByClassName("card-body")).forEach((ele, index)=>{
+        ele.innerHTML = `<p class="card-title fs-3" style="display: block;">${results.sum[index]}</p><p class="card-title fs-3" style="display: none;">${convertIntoDiceIcon(results, index)}</p>`
       })
-      const form = document.getElementById('form');
+     }
 
-      form.addEventListener('submit', (event)=>{
-        event.preventDefault();
-        event.stopPropagation();
-        if (form.checkValidity()) {
-         alert("Variable Set!")
+     const handleCardClick=(event, index)=> {
+      Array.from(event.currentTarget.children).forEach((ele)=>{
+          // switch dislay
+        if(ele.style.display ==="none"){
+          ele.style.display = "block";
+        }else if(ele.style.display === "block"){
+          ele.style.display = "none"
+        }
+      })
+    }
 
-       }else{
+    document.getElementById('btn').addEventListener('click', handleButtonClick);
+      // HTML CollectionはArrayではないのでArrayに変換
+    Array.from(document.getElementsByClassName('card-body')).forEach((ele, index)=>{
+      ele.addEventListener('click', (event)=>{
+        handleCardClick(event,index);
+      })
+    })
+    const form = document.getElementById('form');
+
+    form.addEventListener('submit', (event)=>{
+      event.preventDefault();
+      event.stopPropagation();
+      // Actions to to when the variables have been succesfully set
+      if (form.checkValidity()) {
+
+        // formArray: Array that removed the submitButton element from Form Elemnts
+        const formArray = Array.from(document.getElementById("form").elements).filter((ele)=>ele.type==="number"||ele.type==="checkbox");
+         // params: array of values taken from the form array
+        params = formArray.map((ele)=>{
+          if(ele.name ==="explosiveOn6"){
+            return ele.checked;
+          }
+          return Number(ele.value)
+        });
+
+        // Update the numbers in toltip
+        let counter =0;
+        // paramsOfNums: array of nums taken from the form array (checkbox removed)
+        const paramsOfNums = formArray.filter((ele)=> ele.type === "number").map((ele)=>ele.value);
+        Array.from(document.getElementsByClassName("icon")).forEach((ele, index)=>{
+          const regex = /\[INSERT\]/g;
+          const replacedString = tooltipMessages[index].replace(regex, () => {
+            return `${paramsOfNums[counter++]}`;
+          });
+          ele.setAttribute("data-bs-title", replacedString);
+          let tooltip = new bootstrap.Tooltip(ele);
+        })
+
+
+        alert("Variable Set!")
+
+      }else{
         form.reportValidity();
       }
     });
 
-// Checkbox display and hide input in Settings
-      const checkbox = document.getElementById('flexCheckDefault');
-      const container = document.getElementById('explosiveHits');
-      checkbox.addEventListener('change', (event)=> {
+    // Checkbox display and hide input in Settings
+    const checkbox = document.getElementById('explosiveOn6');
+    const container = document.getElementById('extraHitsContainer');
+    checkbox.addEventListener('change', (event)=> {
       // Show/hide extra input based on checkbox state
-        container.style.display = event.currentTarget.checked ? 'block' : 'none';
-      });
-    </script>
-    <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-  </body>
-  </html>
+      container.style.display = event.currentTarget.checked ? 'block' : 'none';
+      document.getElementById('extraHits').value = event.currentTarget.checked ? document.getElementById('extraHits').value : "";
+      console.log(document.getElementById("extraHits").value);
+    });
+
+
+  </script>
+  <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>
