@@ -75,9 +75,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
         const handleButtonClick=()=> {
             const results = play();
-            document.getElementsByClassName("card-title")[0].textContent = results[0];
-            document.getElementsByClassName("card-title")[1].textContent = results[1];
-            document.getElementsByClassName("card-title")[2].textContent = results[2];
+            document.getElementsByClassName("card-title")[0].textContent = results.sum[0];
+            document.getElementsByClassName("card-title")[1].textContent = results.sum[1];
+            document.getElementsByClassName("card-title")[2].textContent = results.sum[2];
         }
         document.getElementById('btn').addEventListener('click', handleButtonClick);
     </script>
