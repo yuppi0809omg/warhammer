@@ -24,8 +24,8 @@
     </div>
   </nav>
   <div class="container text-center my-md-5">
-    <div class="row align-items-center">
-      <div class="col-lg-4 col-md-6 mb-4">
+    <div class="row align-items-center g-2">
+      <div class="col-6 col-sm-4">
         <div class="card" >
           <p class="card-header bg-dark text-white fs-3" >
             HIT
@@ -33,12 +33,12 @@
               <i class="bi bi-info-circle"></i>
             </span>
           </p>
-          <div class="card-body" id="card1">
+          <div class="card-body main" id="card1">
             <p class="card-title fs-3">-</p>
           </div>
         </div>
       </div>
-      <div class="col-lg-4 col-md-6 mb-4">
+      <div class="col-6 col-sm-4">
         <div class="card" >
           <p class="card-header bg-dark text-white fs-3">
             WOUND
@@ -47,12 +47,12 @@
             </span>
           </p>
 
-          <div class="card-body" id="card2">
+          <div class="card-body main" id="card2">
             <p class="card-title fs-3">-</p>
           </div>
         </div>
       </div>
-      <div class="col-lg-4 col-md-6 mb-4">
+      <div class="col-6 col-sm-4">
         <div class="card" >
           <p class="card-header bg-dark text-white fs-3">
             DAMAGE
@@ -61,13 +61,25 @@
             </span>
           </p>
 
+          <div class="card-body main" id="card3">
+            <p class="card-title fs-3">-</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4">
+        <div class="card" >
+          <p class="card-header bg-danger text-white fs-3">
+            AVERAGE
+
+          </p>
+
           <div class="card-body" id="card3">
             <p class="card-title fs-3">-</p>
           </div>
         </div>
       </div>
       <div class="d-grid gap-2 mx-auto">
-        <button type="button" id="btn" class="btn btn-warning btn-lg fs-3">Play</button>
+        <button type="button" id="btn" class="btn btn-warning btn-lg fs-3" disabled>Play</button>
       </div>
     </div>
     <!-- Modal -->
@@ -160,6 +172,7 @@
     <script>
       // ToolTip
       let params = [];
+      let isVariablesSet = false;
       const tooltipMessages = ["Number Of Rolls: [INSERT]<br>Hit On And Above: [INSERT]<br>Extra Hits For 6: +[INSERT]", "Wound On And Above: [INSERT]","Save On And Above: [INSERT]"]
       document.addEventListener('DOMContentLoaded', function () {
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
@@ -176,83 +189,89 @@
 
       }
       const handleButtonClick=()=> {
-       const results = play(params);
+        console.log(params)
+        const results = play(params);
+        const average = calcAverage(params);
         // innerHTMLでcard-title 2つ追加
-       Array.from(document.getElementsByClassName("card-body")).forEach((ele, index)=>{
-        ele.innerHTML = `<p class="card-title fs-3" style="display: block;">${results.sum[index]}</p><p class="card-title fs-3" style="display: none;">${convertIntoDiceIcon(results, index)}</p>`
-      })
-     }
+        Array.from(document.getElementsByClassName("card-body")).forEach((ele, index)=>{
+          if(index === 3){
+            ele.innerHTML = `<p class="card-title fs-3" style="display: block;">${Math.round(average[2]*100)/100}</p>`
+          }else{
+            ele.innerHTML = `<p class="card-title fs-3" style="display: block;">${results.sum[index]}</p><p class="card-title fs-3" style="display: none;">${convertIntoDiceIcon(results, index)}</p>`
+          }
+        })
+      }
 
-     const handleCardClick=(event, index)=> {
-      Array.from(event.currentTarget.children).forEach((ele)=>{
+      const handleCardClick=(event, index)=> {
+        Array.from(event.currentTarget.children).forEach((ele)=>{
           // switch dislay
-        if(ele.style.display ==="none"){
-          ele.style.display = "block";
-        }else if(ele.style.display === "block"){
-          ele.style.display = "none"
-        }
-      })
-    }
+          if(ele.style.display ==="none"){
+            ele.style.display = "block";
+          }else if(ele.style.display === "block"){
+            ele.style.display = "none"
+          }
+        })
+      }
 
-    document.getElementById('btn').addEventListener('click', handleButtonClick);
+      document.getElementById('btn').addEventListener('click', handleButtonClick);
       // HTML CollectionはArrayではないのでArrayに変換
-    Array.from(document.getElementsByClassName('card-body')).forEach((ele, index)=>{
-      ele.addEventListener('click', (event)=>{
-        handleCardClick(event,index);
+      Array.from(document.getElementsByClassName('card-body main')).forEach((ele, index)=>{
+        ele.addEventListener('click', (event)=>{
+          handleCardClick(event,index);
+        })
       })
-    })
-    const form = document.getElementById('form');
+      const form = document.getElementById('form');
 
-    form.addEventListener('submit', (event)=>{
-      event.preventDefault();
-      event.stopPropagation();
+      form.addEventListener('submit', (event)=>{
+        event.preventDefault();
+        event.stopPropagation();
       // Actions to to when the variables have been succesfully set
-      if (form.checkValidity()) {
+        if (form.checkValidity()) {
 
         // formArray: Array that removed the submitButton element from Form Elemnts
-        const formArray = Array.from(document.getElementById("form").elements).filter((ele)=>ele.type==="number"||ele.type==="checkbox");
+          const formArray = Array.from(document.getElementById("form").elements).filter((ele)=>ele.type==="number"||ele.type==="checkbox");
          // params: array of values taken from the form array
-        params = formArray.map((ele)=>{
-          if(ele.name ==="explosiveOn6"){
-            return ele.checked;
-          }
-          return Number(ele.value)
-        });
+          params = formArray.map((ele)=>{
+            if(ele.name ==="explosiveOn6"){
+              return ele.checked;
+            }
+            return Number(ele.value)
+          });
 
         // Update the numbers in toltip
-        let counter =0;
+          let counter =0;
         // paramsOfNums: array of nums taken from the form array (checkbox removed)
-        const paramsOfNums = formArray.filter((ele)=> ele.type === "number").map((ele)=>ele.value);
-        Array.from(document.getElementsByClassName("icon")).forEach((ele, index)=>{
-          const regex = /\[INSERT\]/g;
-          const replacedString = tooltipMessages[index].replace(regex, () => {
-            return `${paramsOfNums[counter++]}`;
-          });
-          ele.setAttribute("data-bs-title", replacedString);
-          let tooltip = new bootstrap.Tooltip(ele);
-        })
+          const paramsOfNums = formArray.filter((ele)=> ele.type === "number").map((ele)=>ele.value);
+          Array.from(document.getElementsByClassName("icon")).forEach((ele, index)=>{
+            const regex = /\[INSERT\]/g;
+            const replacedString = tooltipMessages[index].replace(regex, () => {
+              return `${paramsOfNums[counter++]}`;
+            });
+            ele.setAttribute("data-bs-title", replacedString);
+            let tooltip = new bootstrap.Tooltip(ele);
+          })
+          document.getElementById("btn").disabled = false;
+          alert("Variables Set!")
 
-
-        alert("Variable Set!")
-
-      }else{
-        form.reportValidity();
-      }
-    });
+        }else{
+          form.reportValidity();
+        }
+      });
 
     // Checkbox display and hide input in Settings
-    const checkbox = document.getElementById('explosiveOn6');
-    const container = document.getElementById('extraHitsContainer');
-    checkbox.addEventListener('change', (event)=> {
+      const checkbox = document.getElementById('explosiveOn6');
+      const container = document.getElementById('extraHitsContainer');
+      const input = document.getElementById('extraHits');
+      checkbox.addEventListener('change', (event)=> {
       // Show/hide extra input based on checkbox state
-      container.style.display = event.currentTarget.checked ? 'block' : 'none';
-      document.getElementById('extraHits').value = event.currentTarget.checked ? document.getElementById('extraHits').value : "";
-      console.log(document.getElementById("extraHits").value);
-    });
+        container.style.display = event.currentTarget.checked ? 'block' : 'none';
+        input.required = event.currentTarget.checked ? true : false;
+        document.getElementById('extraHits').value = event.currentTarget.checked ? document.getElementById('extraHits').value : "";
+      });
 
 
-  </script>
-  <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
-</body>
-</html>
+    </script>
+    <script src="https://unpkg.com/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  </body>
+  </html>

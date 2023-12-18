@@ -1,10 +1,22 @@
+const roll = () => {
+    return Math.floor((Math.random() * 6 + 1))
+}
+// params [20, 3, true, 3, 4, 3]
+const calcAverage = (params)=>{
+    const averageHit = params[2]? (params[0] * 1/6 * (6 - params[1]) + params[0] * 1/6 * params[3])
+    :(params[0] * 1/6 * (6 - params[1] + 1));
+
+    const averageWound = averageHit * (1/6) * (6 - params[4] + 1);
+    const averageDamage = averageWound * (1/6) * (params[5] - 1);
+
+    return [averageHit, averageWound, averageDamage];
+
+}
 const play = (params) => {
     // simulate a roll - returns a random number between 1 and 6
-    const roll = () => {
-        return Math.floor((Math.random() * 6 + 1))
-    }
+
     const [initialRollsMax, hitMinThresh, isExplosiveOn6, extraHits, woundMinTresh, saveMinThresh] = params;
-    const hitMaxThresh = isExplosiveOn6 && extraHits? 5 : 6;
+    const hitMaxThresh = isExplosiveOn6 && extraHits ? 5 : 6;
     // roll times to hit
     let firstRoles = 0;
     let hits = 0;
